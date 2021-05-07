@@ -12,12 +12,21 @@ class StreamParserTest < ActiveSupport::TestCase
     assert parser.scan_until('c').is_a?(MatchData)
     assert_equal 'ab',  parser.pre_match
     assert_equal 'c',   parser.match
+    assert_equal 'd',   parser.next_char
     assert_equal false, parser.eos?
     assert_equal 'abcdefg',    parser.current_line
     assert_equal <<-DOC.rstrip,    parser.cursor
    1: abcdefg
       --^
     DOC
+    parser.scan_until('f')
+    assert_equal 'f',   parser.match
+    assert_equal 'g',   parser.next_char
+    assert_equal false, parser.eos?
+    parser.scan_until('g')
+    assert_equal 'g',   parser.match
+    assert_nil          parser.next_char
+    assert_equal true,  parser.eos?
   end
 
   test '#scan_until(REGEX)' do
@@ -26,6 +35,7 @@ class StreamParserTest < ActiveSupport::TestCase
     assert parser.scan_until(/g/).is_a?(MatchData)
     assert_equal 'abcdef',  parser.pre_match
     assert_equal 'g',       parser.match
+    assert_nil              parser.next_char
     assert_equal true,      parser.eos?
     assert_equal 'abcdefg', parser.current_line
     assert_equal <<-DOC.rstrip,    parser.cursor

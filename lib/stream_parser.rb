@@ -24,7 +24,7 @@ module StreamParser
   # end
 
   def eos?
-    @index >= (@source.size - 1)
+    @index >= (@source.size - 0)
   end
 
   def scan_until(r)
@@ -39,13 +39,13 @@ module StreamParser
     else
       @match = nil
       @old_index = @index
-      @index = @source.size - 1
+      @index = @source.size
     end
     match
   end
 
   def pre_match
-    @source[@old_index...(@index-@match.size)]
+    @source[@old_index...(@index-(@match&.size || 0))]
   end
 
   def rewind(by=1)
@@ -63,7 +63,7 @@ module StreamParser
   end
 
   def next_char
-    @source[@index+1]
+    @source[@index]
   end
   
   def prev_char
