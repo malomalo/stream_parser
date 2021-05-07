@@ -147,4 +147,31 @@ DOC
     assert_equal 'end', parser.current_line
   end
 
+  test "#quoted_value examples" do
+    parser = TestParser.new(%q("this", "\"is", "a\"", "te\"st", 'to', '\'see', 'quotes\'', 'wo\'rk'))
+    
+    parser.scan_until('"')
+    assert_equal 'this', parser.quoted_value('"')
+    
+    parser.scan_until('"')
+    assert_equal '"is', parser.quoted_value('"')
+
+    parser.scan_until('"')
+    assert_equal 'a"', parser.quoted_value('"')
+
+    parser.scan_until('"')
+    assert_equal 'te"st', parser.quoted_value('"')
+    
+    parser.scan_until("'")
+    assert_equal "to", parser.quoted_value("'")
+    
+    parser.scan_until("'")
+    assert_equal "'see", parser.quoted_value("'")
+    parser.scan_until("'")
+    
+    assert_equal "quotes'", parser.quoted_value("'")
+    
+    parser.scan_until("'")
+    assert_equal "wo'rk", parser.quoted_value("'")
+  end
 end

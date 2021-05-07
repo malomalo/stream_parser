@@ -103,4 +103,18 @@ module StreamParser
     output
   end
 
+  def quoted_value(quote_char = '"', escape_chars = ["\\"])
+    ret_value = ""
+    while scan_until(/(#{quote_char}|\Z)/)
+      if match != quote_char
+        raise Net::HTTPHeaderSyntaxError.new("Invalid Set-Cookie header format: unbalanced quotes (#{quote_char})")
+      elsif !escape_chars.include?(pre_match[-1])
+        ret_value << pre_match
+        return ret_value
+      else
+        ret_value << pre_match[0...-1] << match
+      end
+    end
+  end
+  
 end
