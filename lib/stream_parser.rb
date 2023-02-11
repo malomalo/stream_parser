@@ -1,5 +1,7 @@
 module StreamParser
 
+  autoload :HTML, File.expand_path('../stream_parser/html', __FILE__)
+  
   def self.included(base)
     base.extend ClassMethods
   end
@@ -29,8 +31,8 @@ module StreamParser
 
   def scan_until(r)
     r = Regexp.new(Regexp.escape(r)) if r.is_a?(String)
-    index = @source.index(r, @index)
     match = @source.match(r, @index)
+    index = match&.begin(0)
     
     if match
       @match = match.to_s
@@ -42,6 +44,13 @@ module StreamParser
       @index = @source.size
     end
     match
+  end
+  
+  def gobble(r)
+    m = @source.match(r, @index)
+    if m&.begin(0) == @index
+      scan_until(r)
+    end
   end
 
   def pre_match
@@ -70,6 +79,18 @@ module StreamParser
     @source[@index-1]
   end
   
+  def next?(r)
+    @source.match(r, @index)&.begin(0) == @index
+  end
+
+  def peek(n=1)
+    if n.is_a?(Regexp)
+      @source.match(n, @index)
+    else
+      @source.slice(@index, n)
+    end
+  end
+
   def next_word
     nw = @source.match(/\s*(\S+)/, @index)
     nw.nil? ? nil : nw[1]

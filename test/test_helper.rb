@@ -10,6 +10,7 @@ require 'minitest/reporters'
 require 'mocha/minitest'
 
 require 'stream_parser'
+require 'stream_parser/html'
 
 Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
 
