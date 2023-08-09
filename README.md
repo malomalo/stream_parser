@@ -55,5 +55,7 @@ QuotedStringFinder.parse(%q{Here "ar})
 # => SyntaxError "Unbalanced Quotes in string"
 ```
 
+Although we grab quoted values ourselfs in this example there is a `quoted_value` helper as well as a
+`StreamParser::HTML` which provides additional helpers such as `next_tag`, `scan_for_tag`, `next_end_tag` and others.
 
 
