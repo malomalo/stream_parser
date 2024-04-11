@@ -1,0 +1,1 @@
+class StreamParser::SyntaxError < StandardError; end

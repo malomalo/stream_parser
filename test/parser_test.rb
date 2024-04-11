@@ -174,4 +174,14 @@ DOC
     parser.scan_until("'")
     assert_equal "wo'rk", parser.quoted_value("'")
   end
+  
+  test "#quoted_value unbalanced example" do
+    parser = TestParser.new(%q("this))
+    
+    parser.scan_until('"')
+    assert_raises StreamParser::SyntaxError, 'Unbalanced quotes "' do
+      parser.quoted_value('"')
+    end
+  end
+  
 end

@@ -1,6 +1,7 @@
 module StreamParser
 
-  autoload :HTML, File.expand_path('../stream_parser/html', __FILE__)
+  autoload :HTML, 'stream_parser/html'
+  autoload :SyntaxError, 'stream_parser/syntax_error'
   
   def self.included(base)
     base.extend ClassMethods
@@ -128,7 +129,7 @@ module StreamParser
     ret_value = ""
     while scan_until(/(#{quote_char}|\Z)/)
       if match != quote_char
-        raise Net::HTTPHeaderSyntaxError.new("Invalid Set-Cookie header format: unbalanced quotes (#{quote_char})")
+        raise StreamParser::SyntaxError.new("Unbalanced quotes #{quote_char}")
       elsif !escape_chars.include?(pre_match[-1])
         ret_value << pre_match
         return ret_value
