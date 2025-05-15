@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class StreamParser::HTML::Tag
   attr_reader :name, :attributes
   attr_writer :self_closing

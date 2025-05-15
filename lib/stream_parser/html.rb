@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module StreamParser::HTML
   
   autoload :Tag, File.expand_path('../html/tag', __FILE__)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module StreamParser
 
   autoload :HTML, 'stream_parser/html'
@@ -126,7 +128,7 @@ module StreamParser
   end
 
   def quoted_value(quote_char = '"', escape_chars = ["\\"])
-    ret_value = ""
+    ret_value = String.new
     while scan_until(/(#{quote_char}|\Z)/)
       if match != quote_char
         raise StreamParser::SyntaxError.new("Unbalanced quotes #{quote_char}")
