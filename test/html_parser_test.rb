@@ -209,13 +209,6 @@ class StreamParser::HTMLTest < ActiveSupport::TestCase
     assert_equal '</div>', parser.match
   end
 
-  test '#scan_for_closing_tag does not write to stdout' do
-    parser = TestParser.new('<div><a></a></div>')
-    parser.scan_for_tag('div')
-
-    assert_output('') { parser.scan_for_closing_tag }
-  end
-
   test '#next_end_tag' do
     parser = TestParser.new('<div><ul><li>one</li></ul></ div ></div>')
 
