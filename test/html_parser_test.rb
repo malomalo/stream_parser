@@ -223,4 +223,17 @@ class StreamParser::HTMLTest < ActiveSupport::TestCase
     assert_equal '</div>', parser.match
   end
 
+  test '#next_end_tag' do
+    parser = TestParser.new('<div><ul><li>one</li></ul></ div ></div>')
+
+    assert parser.next_end_tag('div')
+    assert_equal '<div><ul><li>one</li></ul>', parser.pre_match
+    assert_equal '</ div >', parser.match
+
+    assert parser.next_end_tag('div')
+    assert_equal '</div>', parser.match
+
+    assert_nil parser.next_end_tag('div')
+  end
+
 end
