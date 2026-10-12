@@ -78,6 +78,26 @@ class StreamParser::HTMLTest < ActiveSupport::TestCase
     end
   end
 
+  test '#next_tag open tag with unquoted attribute values containing slashes' do
+    parser = TestParser.new('<a href=http://example.com/path class=link>text</a>')
+    tag = parser.next_tag
+    assert_equal 'a', tag.name
+    assert_equal false, tag.self_closing?
+    assert_equal({href: 'http://example.com/path', class: 'link'}, tag.attributes)
+    assert_equal '<a href=http://example.com/path class=link>', parser.match
+
+    tag = parser.next_tag
+    assert_equal 'a', tag.name
+    assert_equal true, tag.closing?
+  end
+
+  test '#next_tag open tag with unquoted attribute values containing equals' do
+    parser = TestParser.new('<a href=/search?q=1>')
+    tag = parser.next_tag
+    assert_equal({href: '/search?q=1'}, tag.attributes)
+    assert_nil parser.next_tag
+  end
+
   test '#next_tag open tag with double quoted attribute names' do
     ['<name "on"=yes>', '<name "on"= yes >', '<name "on" =yes >', '<name "on" = yes >'].each do |str|
       parser = TestParser.new(str)

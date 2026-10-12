@@ -107,7 +107,7 @@ module StreamParser::HTML
       forward(1)
       quoted_value(quote_char)
     else
-      scan_until(/[^>\s\/=]+/)[0]
+      scan_until(/[^>\s]+/)[0]
     end
   end
   
