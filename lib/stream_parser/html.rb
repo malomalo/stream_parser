@@ -98,6 +98,8 @@ module StreamParser::HTML
   def html_tag_value
     gobble(/\s+/)
     case peek(1)
+    when '>'
+      ''
     when '"', "'"
       quote_char = next_char
       forward(1)
