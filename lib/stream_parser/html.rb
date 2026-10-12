@@ -100,6 +100,8 @@ module StreamParser::HTML
     return '' if eos?
 
     case peek(1)
+    when '>'
+      ''
     when '"', "'"
       quote_char = next_char
       forward(1)

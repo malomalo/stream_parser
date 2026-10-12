@@ -130,6 +130,20 @@ class StreamParser::HTMLTest < ActiveSupport::TestCase
     end
   end
 
+  test '#next_tag open tag with empty attribute values' do
+    ['<name on=><b>', '<name on= ><b>', '<name on = ><b>'].each do |str|
+      parser = TestParser.new(str)
+      tag = parser.next_tag
+      assert_equal 'name',      tag.name
+      assert_equal({on: ''},    tag.attributes)
+      assert_equal str[0...-3], parser.match
+
+      tag = parser.next_tag
+      assert_equal 'b', tag.name
+      assert_nil parser.next_tag
+    end
+  end
+
   test '#next_tag skipping multiple comments in a row' do
     parser = TestParser.new("<div><!-- ------------------------------------------ --><!-- ------------------------------------------ --></div>")
     tag = parser.next_tag
