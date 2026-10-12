@@ -17,7 +17,7 @@ module StreamParser::HTML
       scan_until(/-->\s*/)
       return unless scan_until(/<\s*/)
     end
-    start_index = @index - match.size
+    start_index = @index - match.bytesize
     
     # HTMLComment.new(pre_match)
     if peek(1) == '/'
@@ -71,13 +71,13 @@ module StreamParser::HTML
       when '>'
         forward(1)
         @old_index = old_index
-        @match = @source[start_index...@index]
+        @match = @source.byteslice(start_index...@index)
         return tag
       when '/'
         forward(1)
         gobble(/\s*\>/)
         @old_index = old_index
-        @match = @source[start_index...@index]
+        @match = @source.byteslice(start_index...@index)
         tag.self_closing = true
         return tag
       when '"', "'"
@@ -98,7 +98,7 @@ module StreamParser::HTML
     end
 
     @old_index = old_index
-    @match = @source[start_index...@index]
+    @match = @source.byteslice(start_index...@index)
     tag
   end
   

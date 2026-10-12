@@ -222,4 +222,65 @@ DOC
     end
   end
   
+test 'multibyte characters' do
+    parser = TestParser.new("héllo wörld ✓ done")
+
+    assert parser.scan_until('ö')
+    assert_equal 'héllo w', parser.pre_match
+    assert_equal 'ö',       parser.match
+    assert_equal 'r',       parser.next_char
+    assert_equal 'ö',       parser.prev_char
+    assert_equal 'rld ✓',   parser.peek(5)
+    assert_equal 'héllo wörld ✓ done', parser.current_line
+    assert_equal <<-DOC.rstrip, parser.cursor
+   1: héllo wörld ✓ done
+      -------^
+    DOC
+
+    assert parser.scan_until(/✓/)
+    assert_equal 'rld ', parser.pre_match
+    assert_equal 'done', parser.next_word
+
+    parser.rewind(2)
+    assert_equal ' ', parser.next_char
+    parser.rewind
+    assert_equal 'd', parser.next_char
+    parser.forward(3)
+    assert_equal ' ', parser.next_char
+    assert parser.gobble(' ')
+    assert_equal true, parser.next?('done')
+    assert_equal true, parser.next?(/d/)
+
+    assert parser.scan_until('done')
+    assert_equal true, parser.eos?
+    assert_nil parser.next_char
+
+    parser.seek(1)
+    assert_equal 'é', parser.next_char
+    assert_equal 'h', parser.prev_char
+    assert parser.scan_until(/\s/)
+    assert_equal 'éllo', parser.pre_match
+  end
+
+  test '#cursor with multibyte characters on multiple lines' do
+    parser = TestParser.new("ünïcode\nlïne twö\n")
+
+    parser.scan_until('twö')
+    assert_equal 'lïne twö', parser.current_line
+    assert_equal <<-DOC.rstrip, parser.cursor
+   2: lïne twö
+      -----^^^
+    DOC
+  end
+
+  test '#quoted_value with multibyte characters' do
+    parser = TestParser.new(%q("hé\"llö" 'wörld'))
+
+    parser.scan_until('"')
+    assert_equal 'hé"llö', parser.quoted_value('"')
+    parser.scan_until("'")
+    assert_equal 'wörld', parser.quoted_value("'")
+    assert parser.eos?
+  end
+
 end

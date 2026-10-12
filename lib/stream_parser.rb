@@ -18,7 +18,14 @@ module StreamParser
   end
 
   attr_accessor :match
+
+  # Enough bytes to hold any single character (CESU-8 uses up to 6)
+  MAX_CHAR_BYTES = 6
   
+  # @index, @old_index, and the positions used internally are byte offsets
+  # into @source so scanning doesn't have to convert between character and
+  # byte offsets. The public interface (forward, rewind, seek, peek, ...)
+  # counts characters.
   def initialize(source)
     @source = source
     seek(0)
@@ -29,100 +36,102 @@ module StreamParser
   # end
 
   def eos?
-    @index >= (@source.size - 0)
+    @index >= @source.bytesize
   end
 
   def scan_until(r)
     r = Regexp.new(Regexp.escape(r)) if r.is_a?(String)
-    match = @source.match(r, @index)
-    index = match&.begin(0)
+    match = @source.byteindex(r, @index) && $~
     
     if match
       @match = match.to_s
       @old_index = @index
-      @index = index + @match.size
+      @index = match.byteend(0)
     else
       @match = nil
       @old_index = @index
-      @index = @source.size
+      @index = @source.bytesize
     end
     match
   end
   
   def gobble(r)
     r = Regexp.new(Regexp.escape(r)) if r.is_a?(String)
-    m = @source.match(r, @index)
-    if m&.begin(0) == @index
+    if @source.byteindex(r, @index) == @index
       scan_until(r)
     end
   end
 
   def pre_match
-    @source[@old_index...(@index-(@match&.size || 0))]
+    @source.byteslice(@old_index...(@index - (@match&.bytesize || 0)))
   end
 
   def rewind(by=1)
-    @index -= by
+    before = @source.byteslice(0, @index)
+    @index -= (before[-by..] || before).bytesize
   end
 
   def forward(by=1)
-    @index += by
+    @index += peek(by).bytesize
   end
 
   def seek(pos)
     @old_index = nil
     @match = nil
-    @index = pos
+    @index = @source[0, pos].bytesize
   end
 
   def next_char
-    @source[@index]
+    peek(1)[0]
   end
   
   def prev_char
-    @source[@index-1]
+    @source.byteslice(0, @index)[-1]
   end
   
   def next?(r)
     r = Regexp.new(Regexp.escape(r)) if r.is_a?(String)
-    @source.match(r, @index)&.begin(0) == @index
+    @source.byteindex(r, @index) == @index
   end
 
   def peek(n=1)
     if n.is_a?(Regexp)
-      @source.match(n, @index)
+      @source.byteindex(n, @index) && $~
     else
-      @source.slice(@index, n)
+      # Slicing forward from a character boundary always decodes correctly,
+      # and n characters fit in n * MAX_CHAR_BYTES bytes
+      @source.byteslice(@index, n * MAX_CHAR_BYTES)[0, n]
     end
   end
 
   def next_word
-    nw = @source.match(/\s*(\S+)/, @index)
-    nw.nil? ? nil : nw[1]
+    @source.byteindex(/\s*(\S+)/, @index) && $~[1]
   end
 
   def current_line
-    start = @source.rindex(/(\n|\A)/, @index-(@match&.length||0)) || 0
-    start += 1 if @source[start] == "\n"
+    start = @source.byterindex(/(\n|\A)/, @index - (@match&.bytesize || 0)) || 0
+    start += 1 if @source.getbyte(start) == 10
 
-    uptop = @source.index(/(\n|\z)/, @index)
-    uptop -= 1 if @source[uptop] == "\n"
+    uptop = @source.byteindex(/(\n|\z)/, @index)
+    uptop -= 1 if @source.getbyte(uptop) == 10
 
-    @source[start..uptop]
+    @source.byteslice(start..uptop)
   end
 
   def cursor
-    start = @source.rindex(/(\n|\A)/, @index-(@match&.length||0)) || 0
-    start += 1 if @source[start] == "\n"
+    start = @source.byterindex(/(\n|\A)/, @index - (@match&.bytesize || 0)) || 0
+    start += 1 if @source.getbyte(start) == 10
 
-    uptop = @source.index(/(\n|\z)/, @index)
-    uptop -= 1 if @source[uptop] == "\n"
+    uptop = @source.byteindex(/(\n|\z)/, @index)
+    uptop -= 1 if @source.getbyte(uptop) == 10
 
-    lineno = @source[0..start].count("\n") + 1
+    lineno = @source.byteslice(0, start).count("\n") + 1
+    lineno += 1 if @source.getbyte(start) == 10
 
-    output =  "#{lineno.to_s.rjust(4)}: #{@source[start..uptop]}\n     "
+    output =  "#{lineno.to_s.rjust(4)}: #{@source.byteslice(start..uptop)}\n     "
     output << if @match
-      " #{'-'* (@index-(@match.length)-start)}#{'^'*(@match.length)}"
+      before_match = @source.byteslice(start...(@index - @match.bytesize))
+      " #{'-' * before_match.length}#{'^' * @match.length}"
     else
       "^"
     end

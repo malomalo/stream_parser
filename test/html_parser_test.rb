@@ -332,4 +332,20 @@ class StreamParser::HTMLTest < ActiveSupport::TestCase
     assert_nil parser.next_end_tag('div')
   end
 
+test 'multibyte characters' do
+    parser = TestParser.new('<p>Grüße</p><a title="café ✓" data-x=naïve>über</a>')
+
+    tag = parser.scan_for_tag('a')
+    assert_equal 'a', tag.name
+    assert_equal({title: 'café ✓', :'data-x' => 'naïve'}, tag.attributes)
+    assert_equal '<p>Grüße</p>', parser.pre_match
+    assert_equal '<a title="café ✓" data-x=naïve>', parser.match
+
+    tag = parser.scan_for_closing_tag
+    assert_equal 'a',      tag.name
+    assert_equal 'über',   parser.pre_match
+    assert_equal '</a>',   parser.match
+    assert parser.eos?
+  end
+
 end
