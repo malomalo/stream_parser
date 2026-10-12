@@ -43,7 +43,6 @@ module StreamParser::HTML
     heap = []
     
     tag = next_tag
-    puts tag.inspect
     while tag && !(tag.closing? && heap.empty?)
       if !tag.closing? && !tag.self_closing?
         heap << tag
@@ -108,7 +107,7 @@ module StreamParser::HTML
   end
   
   def next_end_tag(name)
-    scan_until(/<\/\s*li>/)
+    scan_until(/<\/\s*#{Regexp.escape(name)}\s*>/)
   end
   
 end
