@@ -175,6 +175,15 @@ class StreamParser::HTMLTest < ActiveSupport::TestCase
     assert_equal true,   tag.closing?
   end
 
+  test '#next_tag with no tag after a comment' do
+    ['<div><!-- x -->', '<div><!-- x --> text', '<div><!-- x'].each do |str|
+      parser = TestParser.new(str)
+      assert_equal 'div', parser.next_tag.name
+      assert_nil parser.next_tag
+      assert parser.eos?
+    end
+  end
+
   test '#next_tag with input ending inside the tag' do
     {
       '<name '         => {},

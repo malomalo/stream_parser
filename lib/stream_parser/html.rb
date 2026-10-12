@@ -16,7 +16,7 @@ module StreamParser::HTML
     while peek(3) == '!--'
       forward(3)
       scan_until(/-->\s*/)
-      scan_until(/<\s*/)
+      return unless scan_until(/<\s*/)
     end
     
     # HTMLComment.new(pre_match)
