@@ -50,6 +50,7 @@ module StreamParser
   end
   
   def gobble(r)
+    r = Regexp.new(Regexp.escape(r)) if r.is_a?(String)
     m = @source.match(r, @index)
     if m&.begin(0) == @index
       scan_until(r)
@@ -83,6 +84,7 @@ module StreamParser
   end
   
   def next?(r)
+    r = Regexp.new(Regexp.escape(r)) if r.is_a?(String)
     @source.match(r, @index)&.begin(0) == @index
   end
 
