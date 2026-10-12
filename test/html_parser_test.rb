@@ -195,6 +195,28 @@ class StreamParser::HTMLTest < ActiveSupport::TestCase
     end
   end
 
+  test '#next_tag match starts at the opening <' do
+    {
+      '< name>'    => '< name>',
+      '<  name >'  => '<  name >',
+      '< /name>'   => '< /name>',
+      '< name />'  => '< name />'
+    }.each do |str, expected|
+      parser = TestParser.new(str)
+      parser.next_tag
+      assert_equal expected, parser.match
+      assert_equal '',       parser.pre_match
+    end
+  end
+
+  test '#next_tag match after skipping comments' do
+    parser = TestParser.new('x<!-- a --><!-- b --> <div>')
+    tag = parser.next_tag
+    assert_equal 'div',                   tag.name
+    assert_equal '<div>',                 parser.match
+    assert_equal 'x<!-- a --><!-- b --> ', parser.pre_match
+  end
+
   test '#scan_for_tag' do
     parser = TestParser.new("<html><div><a></a></div></html>")
 
