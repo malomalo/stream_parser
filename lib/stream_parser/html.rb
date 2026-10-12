@@ -43,11 +43,18 @@ module StreamParser::HTML
     heap = []
     
     tag = next_tag
-    while tag && !(tag.closing? && heap.empty?)
-      if !tag.closing? && !tag.self_closing?
+    while tag
+      if tag.closing?
+        # Close the most recent open tag with this name (and anything left
+        # open inside it); a closing tag that matches nothing open is
+        # either the one we're looking for or stray and ignored
+        if (i = heap.rindex { |t| t.name == tag.name })
+          heap.slice!(i..)
+        elsif heap.empty?
+          break
+        end
+      elsif !tag.self_closing? && !tag.void?
         heap << tag
-      elsif !tag.self_closing?
-        heap.pop
       end
       tag = next_tag(old_index: old_index)
     end

@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 class StreamParser::HTML::Tag
+  # Elements that never have a closing tag, see
+  # https://html.spec.whatwg.org/multipage/syntax.html#void-elements
+  VOID_ELEMENTS = %w(area base br col embed hr img input link meta source track wbr).freeze
+
   attr_reader :name, :attributes
   attr_writer :self_closing
   
@@ -29,6 +33,10 @@ class StreamParser::HTML::Tag
   
   def opening?
     !@closing
+  end
+
+  def void?
+    VOID_ELEMENTS.include?(@name&.downcase)
   end
   
   def match(name: nil, closing: nil, attributes: nil)

@@ -272,6 +272,31 @@ class StreamParser::HTMLTest < ActiveSupport::TestCase
     assert_equal '</div>', parser.match
   end
 
+  test '#scan_for_closing_tag with void elements' do
+    parser = TestParser.new('<div><br><img src=a.png><BR><p>text</p><hr></div><a></a>')
+    parser.scan_for_tag('div')
+
+    tag = parser.scan_for_closing_tag
+    assert_equal 'div', tag.name
+    assert_equal true,  tag.closing?
+    assert_equal '<br><img src=a.png><BR><p>text</p><hr>', parser.pre_match
+    assert_equal '</div>', parser.match
+  end
+
+  test '#scan_for_closing_tag with mismatched closing tags' do
+    # Stray closing tag inside the element is ignored
+    parser = TestParser.new('<div><b>x</i></b></div>')
+    parser.scan_for_tag('div')
+    assert_equal 'div',               parser.scan_for_closing_tag.name
+    assert_equal '<b>x</i></b>',      parser.pre_match
+
+    # Closing an outer tag also closes tags left open inside it
+    parser = TestParser.new('<div><b><i>x</b></div>')
+    parser.scan_for_tag('div')
+    assert_equal 'div',               parser.scan_for_closing_tag.name
+    assert_equal '<b><i>x</b>',       parser.pre_match
+  end
+
   test '#next_end_tag' do
     parser = TestParser.new('<div><ul><li>one</li></ul></ div ></div>')
 
