@@ -78,7 +78,8 @@ module StreamParser::HTML
         forward(1)
         quoted_value(quote_char)
       else
-        scan_until(/[^>\s\/=]+/)[0]
+        break unless scan_until(/[^>\s\/=]+/)
+        match
       end
       
       tag[key] = if next?(/\s*=/)
@@ -96,6 +97,8 @@ module StreamParser::HTML
   
   def html_tag_value
     gobble(/\s+/)
+    return '' if eos?
+
     case peek(1)
     when '"', "'"
       quote_char = next_char
