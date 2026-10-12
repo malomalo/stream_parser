@@ -141,6 +141,26 @@ class StreamParser::HTMLTest < ActiveSupport::TestCase
     assert_equal true,   tag.closing?
   end
 
+  test '#next_tag with input ending inside the tag' do
+    {
+      '<name '         => {},
+      '<name on'       => {on: true},
+      '<name on '      => {on: true},
+      '<name on ='     => {on: ''},
+      '<name on= '     => {on: ''},
+      '<name on=yes '  => {on: 'yes'},
+      '<name on=yes =' => {on: 'yes'}
+    }.each do |str, attributes|
+      parser = TestParser.new(str)
+      tag = parser.next_tag
+      assert_equal 'name',     tag.name
+      assert_equal attributes, tag.attributes
+      assert_equal str,        parser.match
+      assert parser.eos?
+      assert_nil parser.next_tag
+    end
+  end
+
   test '#scan_for_tag' do
     parser = TestParser.new("<html><div><a></a></div></html>")
 
