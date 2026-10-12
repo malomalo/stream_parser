@@ -44,6 +44,44 @@ class StreamParserTest < ActiveSupport::TestCase
     DOC
   end
 
+  test '#gobble(STRING)' do
+    parser = TestParser.new('a.b.c')
+
+    assert_nil parser.gobble('.')
+    assert_equal 'a', parser.next_char
+
+    assert parser.gobble('a.')
+    assert_equal 'a.', parser.match
+    assert_equal 'b',  parser.next_char
+  end
+
+  test '#gobble(REGEX)' do
+    parser = TestParser.new('a.b.c')
+
+    assert_nil parser.gobble(/b/)
+    assert_equal 'a', parser.next_char
+
+    assert parser.gobble(/./)
+    assert_equal 'a', parser.match
+    assert_equal '.', parser.next_char
+  end
+
+  test '#next?(STRING)' do
+    parser = TestParser.new('a.b')
+
+    assert_equal false, parser.next?('.')
+    assert_equal true,  parser.next?('a.')
+    parser.forward
+    assert_equal true,  parser.next?('.')
+  end
+
+  test '#next?(REGEX)' do
+    parser = TestParser.new('a.b')
+
+    assert_equal true,  parser.next?(/./)
+    assert_equal false, parser.next?(/b/)
+  end
+
   test '#cursor examples' do
     parser = TestParser.new('abcdefg')
     assert_equal <<-DOC.rstrip,    parser.cursor
