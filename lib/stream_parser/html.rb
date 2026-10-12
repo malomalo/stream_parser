@@ -11,13 +11,13 @@ module StreamParser::HTML
   def next_tag(old_index: nil)
     old_index ||= @index
     return unless scan_until(/<\s*/)
-    start_index = @index-1
 
     while peek(3) == '!--'
       forward(3)
       scan_until(/-->\s*/)
       return unless scan_until(/<\s*/)
     end
+    start_index = @index - match.size
     
     # HTMLComment.new(pre_match)
     if peek(1) == '/'
