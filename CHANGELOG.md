@@ -1,5 +1,11 @@
 ## head
 
+* Track positions as byte offsets internally so scanning no longer slows
+  down quadratically with the length of the source. Requires Ruby 3.4 or
+  newer for `MatchData#byteend`. Subclasses that read `@index` or
+  `@old_index` directly now get byte offsets; `forward`, `rewind`, `seek`,
+  `peek`, `next_char` and `prev_char` still count characters.
+
 ## v0.5
 
 * Adding `frozen_string_literal` in preperation for Ruby 3.5 and silence Ruby 3.4
