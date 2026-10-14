@@ -283,4 +283,30 @@ test 'multibyte characters' do
     assert parser.eos?
   end
 
+  test '#rewind over multibyte characters' do
+    parser = TestParser.new("a😀✓é b")
+
+    parser.scan_until(' ')
+    parser.rewind(2)
+    assert_equal 'é', parser.next_char
+    parser.rewind(2)
+    assert_equal '😀', parser.next_char
+    parser.rewind(5)
+    assert_equal 'a', parser.next_char, "rewinding past the start stops at it"
+    assert_equal 'a😀✓é b', parser.peek(6)
+  end
+
+  test '#rewind takes time proportional to the characters rewound' do
+    source = ("é" * 200_000) + " end"
+    parser = TestParser.new(source)
+    parser.scan_until(' end')
+
+    start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    1_000.times { parser.rewind(1); parser.forward(1) }
+    elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
+
+    assert_equal ' end', parser.match
+    assert_operator elapsed, :<, 0.1
+  end
+
 end
