@@ -5,6 +5,9 @@
   newer for `MatchData#byteend`. Subclasses that read `@index` or
   `@old_index` directly now get byte offsets; `forward`, `rewind`, `seek`,
   `peek`, `next_char` and `prev_char` still count characters.
+* `rewind` steps back over UTF-8 continuation bytes instead of copying and
+  counting the source before the current position, so it no longer costs
+  the length of the source in non-ASCII text.
 
 ## v0.5
 

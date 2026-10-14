@@ -67,8 +67,18 @@ module StreamParser
   end
 
   def rewind(by=1)
-    before = @source.byteslice(0, @index)
-    @index -= (before[-by..] || before).bytesize
+    if @source.encoding == Encoding::UTF_8 || @source.ascii_only?
+      # Step back over UTF-8 continuation bytes (0b10xxxxxx), so rewinding
+      # costs the characters rewound rather than the source before @index
+      by.times do
+        break if @index == 0
+        @index -= 1
+        @index -= 1 while @index > 0 && (@source.getbyte(@index) & 0b1100_0000) == 0b1000_0000
+      end
+    else
+      before = @source.byteslice(0, @index)
+      @index -= (before[-by..] || before).bytesize
+    end
   end
 
   def forward(by=1)
